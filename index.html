@@ -140,10 +140,10 @@ border-radius:10px;
 <input type="text" id="username">
 
 <label>Email</label>
-<input type="email">
+<input type="email" id="useremail">
 
 <label>Mobile</label>
-<input type="number">
+<input type="number" id="usermobile">
 
 <button onclick="enterSystem()">Enter System</button>
 
@@ -207,7 +207,7 @@ border-radius:10px;
 
 <h3>User Ratings & Feedback</h3>
 
-<select>
+<select id="rating">
 <option>⭐⭐⭐⭐⭐ Excellent</option>
 <option>⭐⭐⭐⭐ Good</option>
 <option>⭐⭐⭐ Average</option>
@@ -217,7 +217,7 @@ border-radius:10px;
 
 <br><br>
 
-<textarea rows="4"></textarea>
+<textarea rows="4" id="review"></textarea>
 
 <button onclick="submitFeedback()">Submit Feedback</button>
 
@@ -228,17 +228,25 @@ border-radius:10px;
 <div class="contact-section">
 
 <h3>Contact Support</h3>
-<p>evchargingstation4@gmail.com</p>
+
+<p>
+<a href="mailto:evchargingstation4@gmail.com?subject=EV Charging System Support" style="color:white;">
+✉ evchargingstation4@gmail.com
+</a>
+</p>
 
 </div>
 
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
+
+/* GOOGLE SHEET CONNECTION */
+
+const sheetURL="https://script.google.com/macros/s/AKfycbxRnLTyTDYyuvlLTNwp0-0LuTPEtbCv0qWzCifLp8rRUWfu5jCDXAPqxAKnlR3Kg7zOMA/exec";
 
 /* TAB SWITCH */
 
@@ -253,8 +261,8 @@ tabs[i].style.display="none";
 document.getElementById(tabName).style.display="block";
 
 setTimeout(function(){
-map.invalidateSize();
-},200);
+map.invalidateSize(true);
+},500);
 
 }
 
@@ -263,11 +271,19 @@ map.invalidateSize();
 function enterSystem(){
 
 var name=document.getElementById("username").value;
+var email=document.getElementById("useremail").value;
+var mobile=document.getElementById("usermobile").value;
 
-if(name===""){
-document.getElementById("loginMessage").innerHTML="Please enter name";
-return;
-}
+fetch(sheetURL,{
+method:"POST",
+body:JSON.stringify({
+name:name,
+email:email,
+mobile:mobile,
+rating:"",
+review:""
+})
+});
 
 document.getElementById("loginMessage").innerHTML="Welcome "+name;
 
@@ -288,19 +304,14 @@ L.tileLayer(
 var userLat=22.5726;
 var userLng=88.3639;
 
-/* CAR ICON */
-
 var carIcon=L.icon({
 iconUrl:"https://cdn-icons-png.flaticon.com/512/3774/3774278.png",
-iconSize:[40,40],
-iconAnchor:[20,20]
+iconSize:[40,40]
 });
 
 var driverMarker=L.marker([userLat,userLng],{icon:carIcon})
 .addTo(map)
 .bindPopup("🚗 Driver Location");
-
-/* GPS TRACKING */
 
 if(navigator.geolocation){
 
@@ -334,13 +345,16 @@ stations.forEach(function(s){
 
 L.marker([s.lat,s.lng])
 .addTo(map)
-.bindPopup("⚡ Charging Station: "+s.name);
+.bindPopup(
+"<b>⚡ "+s.name+"</b><br>"+
+"<a target='_blank' href='https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng+"'>🚗 Navigate</a>"
+);
 
 });
 
 document.getElementById("totalStations").innerHTML=stations.length;
 
-/* BATTERY SLIDER */
+/* BATTERY */
 
 document.getElementById("battery").addEventListener("input",function(){
 
@@ -428,7 +442,7 @@ reachable.forEach(function(s,index){
 var nav="https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng;
 
 resultHTML+="<b>"+s.name+"</b> - "+s.distance.toFixed(2)+" km<br>";
-resultHTML+="<a href='"+nav+"' target='_blank'>🚗 Navigate with Google Maps</a><br><br>";
+resultHTML+="<a href='"+nav+"' target='_blank'>🚗 Navigate</a><br><br>";
 
 if(index==0){
 
@@ -451,22 +465,25 @@ routeWhileDragging:false
 document.getElementById("reachableStations").innerHTML=reachable.length;
 document.getElementById("result").innerHTML=resultHTML;
 
-/* BATTERY STATUS */
-
-var status;
-
-if(battery>=80) status="Excellent";
-else if(battery>=50) status="Moderate";
-else if(battery>=30) status="Low";
-else status="Critical";
-
-document.getElementById("batteryStatus").innerHTML=status;
-
 }
 
 /* FEEDBACK */
 
 function submitFeedback(){
+
+var rating=document.getElementById("rating").value;
+var review=document.getElementById("review").value;
+
+fetch(sheetURL,{
+method:"POST",
+body:JSON.stringify({
+name:"",
+email:"",
+mobile:"",
+rating:rating,
+review:review
+})
+});
 
 document.getElementById("feedbackMessage").innerHTML="Thank you for your feedback!";
 
@@ -475,5 +492,4 @@ document.getElementById("feedbackMessage").innerHTML="Thank you for your feedbac
 </script>
 
 </body>
-
 </html>

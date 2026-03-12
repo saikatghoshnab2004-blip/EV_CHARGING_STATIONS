@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Smart EV Charging Planning System - Kolkata</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"/>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#eef2f3;
+}
+
+header{
+background:#0a7d3b;
+color:white;
+text-align:center;
+padding:15px;
+}
+
+.tabs{
+display:flex;
+background:#0a7d3b;
+}
+
+.tabs button{
+flex:1;
+padding:12px;
+border:none;
+background:#0a7d3b;
+color:white;
+cursor:pointer;
+font-size:16px;
+}
+
+.tabs button:hover{
+background:#086a31;
+}
+
+.tabcontent{
+display:none;
+padding:20px;
+}
+
+.dashboard{
+display:flex;
+gap:20px;
+flex-wrap:wrap;
+margin:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+width:200px;
+text-align:center;
+}
+
+.card h2{
+margin:0;
+font-size:28px;
+color:#0a7d3b;
+}
+
+.panel{
+background:white;
+padding:20px;
+margin:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+#map{
+height:520px;
+margin:20px;
+}
+
+button{
+padding:10px;
+background:#0a7d3b;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+margin-top:10px;
+}
+
+input,select,textarea{
+width:100%;
+padding:8px;
+margin-top:5px;
+}
+
+.contact-section{
+background:#0a7d3b;
+color:white;
+text-align:center;
+padding:20px;
+margin:20px;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+<h2>Smart EV Charging Planning System</h2>
+</header>
+
+<div class="tabs">
+
+<button onclick="openTab('login')">User Login</button>
+<button onclick="openTab('main')">EV Charging System</button>
+<button onclick="openTab('feedbackTab')">Reviews & Support</button>
+
+</div>
+
+<!-- LOGIN -->
+
+<div id="login" class="tabcontent" style="display:block">
+
+<div class="panel">
+
+<h3>User Details</h3>
+
+<label>Name</label>
+<input type="text" id="username">
+
+<label>Email</label>
+<input type="email">
+
+<label>Mobile</label>
+<input type="number">
+
+<button onclick="enterSystem()">Enter System</button>
+
+<p id="loginMessage"></p>
+
+</div>
+
+</div>
+
+<!-- MAIN SYSTEM -->
+
+<div id="main" class="tabcontent">
+
+<div class="dashboard">
+
+<div class="card">
+<p>⚡ Total Stations</p>
+<h2 id="totalStations"></h2>
+</div>
+
+<div class="card">
+<p>🔋 Battery</p>
+<h2 id="batteryCard">50%</h2>
+</div>
+
+<div class="card">
+<p>📍 Reachable</p>
+<h2 id="reachableStations">0</h2>
+</div>
+
+<div class="card">
+<p>⚠ Status</p>
+<h2 id="batteryStatus">Moderate</h2>
+</div>
+
+</div>
+
+<div class="panel">
+
+<h3>Battery Control</h3>
+
+<input type="range" min="10" max="100" value="50" id="battery">
+
+<p>Battery Level: <span id="batteryValue">50</span>%</p>
+
+<button onclick="findStations()">Find Charging Stations</button>
+
+<p id="result"></p>
+
+</div>
+
+<div id="map"></div>
+
+</div>
+
+<!-- FEEDBACK -->
+
+<div id="feedbackTab" class="tabcontent">
+
+<div class="panel">
+
+<h3>User Ratings & Feedback</h3>
+
+<select>
+<option>⭐⭐⭐⭐⭐ Excellent</option>
+<option>⭐⭐⭐⭐ Good</option>
+<option>⭐⭐⭐ Average</option>
+<option>⭐⭐ Poor</option>
+<option>⭐ Very Poor</option>
+</select>
+
+<br><br>
+
+<textarea rows="4"></textarea>
+
+<button onclick="submitFeedback()">Submit Feedback</button>
+
+<p id="feedbackMessage"></p>
+
+</div>
+
+<div class="contact-section">
+
+<h3>Contact Support</h3>
+<p>evchargingstation4@gmail.com</p>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+<script>
+
+/* TAB SWITCH */
+
+function openTab(tabName){
+
+var tabs=document.getElementsByClassName("tabcontent");
+
+for(var i=0;i<tabs.length;i++){
+tabs[i].style.display="none";
+}
+
+document.getElementById(tabName).style.display="block";
+
+setTimeout(function(){
+map.invalidateSize();
+},200);
+
+}
+
+/* LOGIN */
+
+function enterSystem(){
+
+var name=document.getElementById("username").value;
+
+if(name===""){
+document.getElementById("loginMessage").innerHTML="Please enter name";
+return;
+}
+
+document.getElementById("loginMessage").innerHTML="Welcome "+name;
+
+openTab("main");
+
+}
+
+/* MAP */
+
+var map=L.map('map').setView([22.5726,88.3639],12);
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+).addTo(map);
+
+/* DRIVER LOCATION */
+
+var userLat=22.5726;
+var userLng=88.3639;
+
+/* CAR ICON */
+
+var carIcon=L.icon({
+iconUrl:"https://cdn-icons-png.flaticon.com/512/3774/3774278.png",
+iconSize:[40,40],
+iconAnchor:[20,20]
+});
+
+var driverMarker=L.marker([userLat,userLng],{icon:carIcon})
+.addTo(map)
+.bindPopup("🚗 Driver Location");
+
+/* GPS TRACKING */
+
+if(navigator.geolocation){
+
+navigator.geolocation.watchPosition(function(position){
+
+userLat=position.coords.latitude;
+userLng=position.coords.longitude;
+
+driverMarker.setLatLng([userLat,userLng]);
+
+});
+
+}
+
+/* CHARGING STATIONS */
+
+var stations=[
+
+{name:"Sector V",lat:22.5760,lng:88.4330},
+{name:"Gariahat",lat:22.5186,lng:88.3656},
+{name:"Dhakuria",lat:22.5074,lng:88.3702},
+{name:"Park Circus",lat:22.5416,lng:88.3727},
+{name:"New Town",lat:22.5850,lng:88.4730},
+{name:"Howrah",lat:22.5831,lng:88.3426},
+{name:"Behala",lat:22.5040,lng:88.3090},
+{name:"Dum Dum",lat:22.6220,lng:88.4220}
+
+];
+
+stations.forEach(function(s){
+
+L.marker([s.lat,s.lng])
+.addTo(map)
+.bindPopup("⚡ Charging Station: "+s.name);
+
+});
+
+document.getElementById("totalStations").innerHTML=stations.length;
+
+/* BATTERY SLIDER */
+
+document.getElementById("battery").addEventListener("input",function(){
+
+var val=this.value;
+
+document.getElementById("batteryValue").innerHTML=val;
+document.getElementById("batteryCard").innerHTML=val+"%";
+
+});
+
+/* DISTANCE FUNCTION */
+
+function getDistance(lat1,lon1,lat2,lon2){
+
+var R=6371;
+
+var dLat=(lat2-lat1)*Math.PI/180;
+var dLon=(lon2-lon1)*Math.PI/180;
+
+var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)*Math.sin(dLon/2);
+
+var c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+return R*c;
+
+}
+
+var rangeCircle;
+var routingControl;
+
+/* FIND STATIONS */
+
+function findStations(){
+
+var battery=parseInt(document.getElementById("battery").value);
+
+var range;
+
+if(battery>=80) range=20;
+else if(battery>=50) range=12;
+else if(battery>=30) range=8;
+else range=5;
+
+if(rangeCircle){
+map.removeLayer(rangeCircle);
+}
+
+rangeCircle=L.circle([userLat,userLng],{
+color:"green",
+fillColor:"green",
+fillOpacity:0.2,
+radius:range*1000
+}).addTo(map);
+
+var reachable=[];
+
+stations.forEach(function(s){
+
+var d=getDistance(userLat,userLng,s.lat,s.lng);
+
+if(d<=range){
+
+reachable.push({
+name:s.name,
+lat:s.lat,
+lng:s.lng,
+distance:d
+});
+
+}
+
+});
+
+reachable.sort(function(a,b){
+return a.distance-b.distance;
+});
+
+var resultHTML="";
+
+reachable.forEach(function(s,index){
+
+var nav="https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng;
+
+resultHTML+="<b>"+s.name+"</b> - "+s.distance.toFixed(2)+" km<br>";
+resultHTML+="<a href='"+nav+"' target='_blank'>🚗 Navigate with Google Maps</a><br><br>";
+
+if(index==0){
+
+if(routingControl){
+map.removeControl(routingControl);
+}
+
+routingControl=L.Routing.control({
+waypoints:[
+L.latLng(userLat,userLng),
+L.latLng(s.lat,s.lng)
+],
+routeWhileDragging:false
+}).addTo(map);
+
+}
+
+});
+
+document.getElementById("reachableStations").innerHTML=reachable.length;
+document.getElementById("result").innerHTML=resultHTML;
+
+/* BATTERY STATUS */
+
+var status;
+
+if(battery>=80) status="Excellent";
+else if(battery>=50) status="Moderate";
+else if(battery>=30) status="Low";
+else status="Critical";
+
+document.getElementById("batteryStatus").innerHTML=status;
+
+}
+
+/* FEEDBACK */
+
+function submitFeedback(){
+
+document.getElementById("feedbackMessage").innerHTML="Thank you for your feedback!";
+
+}
+
+</script>
+
+</body>
+
+</html>

@@ -64,6 +64,11 @@ border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.1);
 width:200px;
 text-align:center;
+transition:0.3s;
+}
+
+.card:hover{
+transform:scale(1.05);
 }
 
 .card h2{
@@ -83,6 +88,7 @@ box-shadow:0 0 10px rgba(0,0,0,0.1);
 #map{
 height:520px;
 margin:20px;
+border-radius:10px;
 }
 
 button{
@@ -93,6 +99,10 @@ border:none;
 border-radius:5px;
 cursor:pointer;
 margin-top:10px;
+}
+
+button:hover{
+background:#064d25;
 }
 
 input,select,textarea{
@@ -123,8 +133,10 @@ border-radius:10px;
 <div class="tabs">
 
 <button onclick="openTab('login')">User Login</button>
-<button onclick="openTab('main')">EV Charging System</button>
-<button onclick="openTab('feedbackTab')">Reviews & Support</button>
+<button onclick="checkLogin('main')">EV Charging System</button>
+<button onclick="checkLogin('booking')">Slot Booking</button>
+<button onclick="checkLogin('admin')">Admin Panel</button>
+<button onclick="checkLogin('feedbackTab')">Reviews</button>
 
 </div>
 
@@ -174,11 +186,6 @@ border-radius:10px;
 <h2 id="reachableStations">0</h2>
 </div>
 
-<div class="card">
-<p>⚠ Status</p>
-<h2 id="batteryStatus">Moderate</h2>
-</div>
-
 </div>
 
 <div class="panel">
@@ -199,6 +206,47 @@ border-radius:10px;
 
 </div>
 
+<!-- BOOKING -->
+
+<div id="booking" class="tabcontent">
+
+<div class="panel">
+
+<h3>Book Charging Slot</h3>
+
+<label>Select Station</label>
+<select id="stationSelect"></select>
+
+<label>Select Time</label>
+<input type="time" id="slotTime">
+
+<button onclick="bookSlot()">Book Slot</button>
+
+<p id="bookingMessage"></p>
+
+</div>
+
+</div>
+
+<!-- ADMIN -->
+
+<div id="admin" class="tabcontent">
+
+<div class="panel">
+
+<h3>Add Charging Station</h3>
+
+<label>Station Name</label>
+<input type="text" id="stationName">
+
+<button onclick="addStation()">Add Station</button>
+
+<p id="adminMessage"></p>
+
+</div>
+
+</div>
+
 <!-- FEEDBACK -->
 
 <div id="feedbackTab" class="tabcontent">
@@ -214,8 +262,6 @@ border-radius:10px;
 <option>⭐⭐ Poor</option>
 <option>⭐ Very Poor</option>
 </select>
-
-<br><br>
 
 <textarea rows="4" id="review"></textarea>
 
@@ -244,13 +290,13 @@ border-radius:10px;
 
 <script>
 
-/* GOOGLE SHEET CONNECTION */
-
 const sheetURL="https://script.google.com/macros/s/AKfycbxRnLTyTDYyuvlLTNwp0-0LuTPEtbCv0qWzCifLp8rRUWfu5jCDXAPqxAKnlR3Kg7zOMA/exec";
+
+var loggedIn=false;
 
 /* TAB SWITCH */
 
-function openTab(tabName){
+function openTab(tab){
 
 var tabs=document.getElementsByClassName("tabcontent");
 
@@ -258,11 +304,25 @@ for(var i=0;i<tabs.length;i++){
 tabs[i].style.display="none";
 }
 
-document.getElementById(tabName).style.display="block";
+document.getElementById(tab).style.display="block";
 
 setTimeout(function(){
-map.invalidateSize(true);
+map.invalidateSize();
 },500);
+
+}
+
+/* LOGIN CHECK */
+
+function checkLogin(tab){
+
+if(!loggedIn){
+alert("Please complete login first.");
+openTab("login");
+return;
+}
+
+openTab(tab);
 
 }
 
@@ -270,20 +330,27 @@ map.invalidateSize(true);
 
 function enterSystem(){
 
-var name=document.getElementById("username").value;
-var email=document.getElementById("useremail").value;
-var mobile=document.getElementById("usermobile").value;
+var name=document.getElementById("username").value.trim();
+var email=document.getElementById("useremail").value.trim();
+var mobile=document.getElementById("usermobile").value.trim();
+
+if(name=="" || email=="" || mobile==""){
+alert("Please fill all details.");
+return;
+}
+
+if(mobile.length!=10){
+alert("Enter valid 10 digit mobile number.");
+return;
+}
 
 fetch(sheetURL,{
 method:"POST",
-body:JSON.stringify({
-name:name,
-email:email,
-mobile:mobile,
-rating:"",
-review:""
-})
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({name,email,mobile})
 });
+
+loggedIn=true;
 
 document.getElementById("loginMessage").innerHTML="Welcome "+name;
 
@@ -311,22 +378,24 @@ iconSize:[40,40]
 
 var driverMarker=L.marker([userLat,userLng],{icon:carIcon})
 .addTo(map)
-.bindPopup("🚗 Driver Location");
+.bindPopup("Driver Location");
 
 if(navigator.geolocation){
 
-navigator.geolocation.watchPosition(function(position){
+navigator.geolocation.watchPosition(function(pos){
 
-userLat=position.coords.latitude;
-userLng=position.coords.longitude;
+userLat=pos.coords.latitude;
+userLng=pos.coords.longitude;
 
 driverMarker.setLatLng([userLat,userLng]);
+
+map.setView([userLat,userLng],13);
 
 });
 
 }
 
-/* CHARGING STATIONS */
+/* STATIONS */
 
 var stations=[
 
@@ -335,9 +404,7 @@ var stations=[
 {name:"Dhakuria",lat:22.5074,lng:88.3702},
 {name:"Park Circus",lat:22.5416,lng:88.3727},
 {name:"New Town",lat:22.5850,lng:88.4730},
-{name:"Howrah",lat:22.5831,lng:88.3426},
-{name:"Behala",lat:22.5040,lng:88.3090},
-{name:"Dum Dum",lat:22.6220,lng:88.4220}
+{name:"Howrah",lat:22.5831,lng:88.3426}
 
 ];
 
@@ -346,13 +413,27 @@ stations.forEach(function(s){
 L.marker([s.lat,s.lng])
 .addTo(map)
 .bindPopup(
-"<b>⚡ "+s.name+"</b><br>"+
-"<a target='_blank' href='https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng+"'>🚗 Navigate</a>"
+"<b>"+s.name+"</b><br>"+
+"<a target='_blank' href='https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng+"'>Navigate</a>"
 );
 
 });
 
 document.getElementById("totalStations").innerHTML=stations.length;
+
+/* BOOKING LIST */
+
+var stationSelect=document.getElementById("stationSelect");
+
+stations.forEach(function(s){
+
+var option=document.createElement("option");
+option.value=s.name;
+option.text=s.name;
+
+stationSelect.appendChild(option);
+
+});
 
 /* BATTERY */
 
@@ -365,7 +446,7 @@ document.getElementById("batteryCard").innerHTML=val+"%";
 
 });
 
-/* DISTANCE FUNCTION */
+/* DISTANCE */
 
 function getDistance(lat1,lon1,lat2,lon2){
 
@@ -394,12 +475,7 @@ function findStations(){
 
 var battery=parseInt(document.getElementById("battery").value);
 
-var range;
-
-if(battery>=80) range=20;
-else if(battery>=50) range=12;
-else if(battery>=30) range=8;
-else range=5;
+var range=battery*0.2;
 
 if(rangeCircle){
 map.removeLayer(rangeCircle);
@@ -407,7 +483,6 @@ map.removeLayer(rangeCircle);
 
 rangeCircle=L.circle([userLat,userLng],{
 color:"green",
-fillColor:"green",
 fillOpacity:0.2,
 radius:range*1000
 }).addTo(map);
@@ -418,44 +493,62 @@ stations.forEach(function(s){
 
 var d=getDistance(userLat,userLng,s.lat,s.lng);
 
+var speed=30;
+var time=(d/speed)*60;
+
+var status;
+
+if(d<=range*0.9){
+status="<span style='color:green'>✔ Safe to Reach</span>";
+}else{
+status="<span style='color:red'>⚠ Battery May Not Reach</span>";
+}
+
 if(d<=range){
 
 reachable.push({
 name:s.name,
 lat:s.lat,
 lng:s.lng,
-distance:d
+distance:d,
+time:time,
+status:status
 });
 
 }
 
 });
 
-reachable.sort(function(a,b){
-return a.distance-b.distance;
-});
+reachable.sort(function(a,b){return a.distance-b.distance});
 
-var resultHTML="";
+var html="";
 
-reachable.forEach(function(s,index){
+reachable.forEach(function(s,i){
 
 var nav="https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng;
 
-resultHTML+="<b>"+s.name+"</b> - "+s.distance.toFixed(2)+" km<br>";
-resultHTML+="<a href='"+nav+"' target='_blank'>🚗 Navigate</a><br><br>";
+html+="<b>"+s.name+"</b> - "+s.distance.toFixed(2)+" km<br>";
+html+="⏱ Approx Time: "+Math.round(s.time)+" minutes<br>";
+html+=s.status+"<br>";
+html+="<a href='"+nav+"' target='_blank'>🚗 Navigate</a><br><br>";
 
-if(index==0){
+if(i==0){
 
 if(routingControl){
 map.removeControl(routingControl);
 }
 
 routingControl=L.Routing.control({
+
 waypoints:[
 L.latLng(userLat,userLng),
 L.latLng(s.lat,s.lng)
 ],
-routeWhileDragging:false
+
+lineOptions:{
+styles:[{color:"green",weight:6}]
+}
+
 }).addTo(map);
 
 }
@@ -463,7 +556,46 @@ routeWhileDragging:false
 });
 
 document.getElementById("reachableStations").innerHTML=reachable.length;
-document.getElementById("result").innerHTML=resultHTML;
+document.getElementById("result").innerHTML=html;
+
+}
+
+/* BOOK SLOT */
+
+function bookSlot(){
+
+var station=document.getElementById("stationSelect").value;
+var time=document.getElementById("slotTime").value;
+
+fetch(sheetURL,{
+method:"POST",
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({station,time})
+});
+
+document.getElementById("bookingMessage").innerHTML="Slot booked at "+station;
+
+}
+
+/* ADMIN ADD STATION */
+
+function addStation(){
+
+var name=document.getElementById("stationName").value;
+
+if(name==""){
+alert("Enter station name");
+return;
+}
+
+var lat=22.55 + Math.random()*0.1;
+var lng=88.35 + Math.random()*0.1;
+
+L.marker([lat,lng])
+.addTo(map)
+.bindPopup("⚡ "+name);
+
+document.getElementById("adminMessage").innerHTML="Station added successfully";
 
 }
 
@@ -476,13 +608,8 @@ var review=document.getElementById("review").value;
 
 fetch(sheetURL,{
 method:"POST",
-body:JSON.stringify({
-name:"",
-email:"",
-mobile:"",
-rating:rating,
-review:review
-})
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({rating,review})
 });
 
 document.getElementById("feedbackMessage").innerHTML="Thank you for your feedback!";

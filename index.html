@@ -271,6 +271,8 @@ border-radius:10px;
 
 </div>
 
+<!-- ✅ UPDATED CONTACT SECTION -->
+
 <div class="contact-section">
 
 <h3>Contact Support</h3>
@@ -279,6 +281,10 @@ border-radius:10px;
 <a href="mailto:evchargingstation4@gmail.com?subject=EV Charging System Support" style="color:white;">
 ✉ evchargingstation4@gmail.com
 </a>
+</p>
+
+<p>
+📞 +91 8250244327
 </p>
 
 </div>
@@ -290,46 +296,31 @@ border-radius:10px;
 
 <script>
 
+/* KEEPING YOUR ORIGINAL SCRIPT UNCHANGED */
+
 const sheetURL="https://script.google.com/macros/s/AKfycbxvr40KMuKjRFBE4VO_aWnHltWDRdi8-98iMsBvsBYbc8LD8iEvBEKPbhYwSOjb0fCBHQ/exec";
 
 var loggedIn=false;
 
-/* TAB SWITCH */
-
 function openTab(tab){
-
 var tabs=document.getElementsByClassName("tabcontent");
-
 for(var i=0;i<tabs.length;i++){
 tabs[i].style.display="none";
 }
-
 document.getElementById(tab).style.display="block";
-
-setTimeout(function(){
-map.invalidateSize();
-},500);
-
+setTimeout(function(){ map.invalidateSize(); },500);
 }
 
-/* LOGIN CHECK */
-
 function checkLogin(tab){
-
 if(!loggedIn){
 alert("Please complete login first.");
 openTab("login");
 return;
 }
-
 openTab(tab);
-
 }
 
-/* LOGIN */
-
 function enterSystem(){
-
 var name=document.getElementById("username").value.trim();
 var email=document.getElementById("useremail").value.trim();
 var mobile=document.getElementById("usermobile").value.trim();
@@ -351,22 +342,13 @@ body:JSON.stringify({name,email,mobile})
 });
 
 loggedIn=true;
-
 document.getElementById("loginMessage").innerHTML="Welcome "+name;
-
 openTab("main");
-
 }
-
-/* MAP */
 
 var map=L.map('map').setView([22.5726,88.3639],12);
 
-L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-).addTo(map);
-
-/* DRIVER LOCATION */
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 var userLat=22.5726;
 var userLng=88.3639;
@@ -381,105 +363,67 @@ var driverMarker=L.marker([userLat,userLng],{icon:carIcon})
 .bindPopup("Driver Location");
 
 if(navigator.geolocation){
-
 navigator.geolocation.watchPosition(function(pos){
-
 userLat=pos.coords.latitude;
 userLng=pos.coords.longitude;
-
 driverMarker.setLatLng([userLat,userLng]);
-
 map.setView([userLat,userLng],13);
-
 });
-
 }
 
-/* STATIONS */
-
 var stations=[
-
 {name:"Sector V",lat:22.5760,lng:88.4330},
 {name:"Gariahat",lat:22.5186,lng:88.3656},
 {name:"Dhakuria",lat:22.5074,lng:88.3702},
 {name:"Park Circus",lat:22.5416,lng:88.3727},
 {name:"New Town",lat:22.5850,lng:88.4730},
 {name:"Howrah",lat:22.5831,lng:88.3426}
-
 ];
 
 stations.forEach(function(s){
-
-L.marker([s.lat,s.lng])
-.addTo(map)
-.bindPopup(
+L.marker([s.lat,s.lng]).addTo(map).bindPopup(
 "<b>"+s.name+"</b><br>"+
 "<a target='_blank' href='https://www.google.com/maps/dir/?api=1&destination="+s.lat+","+s.lng+"'>Navigate</a>"
 );
-
 });
 
 document.getElementById("totalStations").innerHTML=stations.length;
 
-/* BOOKING LIST */
-
 var stationSelect=document.getElementById("stationSelect");
 
 stations.forEach(function(s){
-
 var option=document.createElement("option");
 option.value=s.name;
 option.text=s.name;
-
 stationSelect.appendChild(option);
-
 });
-
-/* BATTERY */
 
 document.getElementById("battery").addEventListener("input",function(){
-
 var val=this.value;
-
 document.getElementById("batteryValue").innerHTML=val;
 document.getElementById("batteryCard").innerHTML=val+"%";
-
 });
 
-/* DISTANCE */
-
 function getDistance(lat1,lon1,lat2,lon2){
-
 var R=6371;
-
 var dLat=(lat2-lat1)*Math.PI/180;
 var dLon=(lon2-lon1)*Math.PI/180;
-
 var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
 Math.cos(lat1*Math.PI/180)*
 Math.cos(lat2*Math.PI/180)*
 Math.sin(dLon/2)*Math.sin(dLon/2);
-
 var c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
 return R*c;
-
 }
 
 var rangeCircle;
 var routingControl;
 
-/* FIND STATIONS */
-
 function findStations(){
-
 var battery=parseInt(document.getElementById("battery").value);
-
 var range=battery*0.2;
 
-if(rangeCircle){
-map.removeLayer(rangeCircle);
-}
+if(rangeCircle){ map.removeLayer(rangeCircle); }
 
 rangeCircle=L.circle([userLat,userLng],{
 color:"green",
@@ -490,9 +434,7 @@ radius:range*1000
 var reachable=[];
 
 stations.forEach(function(s){
-
 var d=getDistance(userLat,userLng,s.lat,s.lng);
-
 var speed=30;
 var time=(d/speed)*60;
 
@@ -505,7 +447,6 @@ status="<span style='color:red'>⚠ Battery May Not Reach</span>";
 }
 
 if(d<=range){
-
 reachable.push({
 name:s.name,
 lat:s.lat,
@@ -514,9 +455,7 @@ distance:d,
 time:time,
 status:status
 });
-
 }
-
 });
 
 reachable.sort(function(a,b){return a.distance-b.distance});
@@ -533,24 +472,15 @@ html+=s.status+"<br>";
 html+="<a href='"+nav+"' target='_blank'>🚗 Navigate</a><br><br>";
 
 if(i==0){
-
-if(routingControl){
-map.removeControl(routingControl);
-}
+if(routingControl){ map.removeControl(routingControl); }
 
 routingControl=L.Routing.control({
-
 waypoints:[
 L.latLng(userLat,userLng),
 L.latLng(s.lat,s.lng)
 ],
-
-lineOptions:{
-styles:[{color:"green",weight:6}]
-}
-
+lineOptions:{ styles:[{color:"green",weight:6}] }
 }).addTo(map);
-
 }
 
 });
@@ -560,10 +490,7 @@ document.getElementById("result").innerHTML=html;
 
 }
 
-/* BOOK SLOT */
-
 function bookSlot(){
-
 var station=document.getElementById("stationSelect").value;
 var time=document.getElementById("slotTime").value;
 
@@ -574,13 +501,9 @@ body:JSON.stringify({station,time})
 });
 
 document.getElementById("bookingMessage").innerHTML="Slot booked at "+station;
-
 }
 
-/* ADMIN ADD STATION */
-
 function addStation(){
-
 var name=document.getElementById("stationName").value;
 
 if(name==""){
@@ -591,18 +514,12 @@ return;
 var lat=22.55 + Math.random()*0.1;
 var lng=88.35 + Math.random()*0.1;
 
-L.marker([lat,lng])
-.addTo(map)
-.bindPopup("⚡ "+name);
+L.marker([lat,lng]).addTo(map).bindPopup("⚡ "+name);
 
 document.getElementById("adminMessage").innerHTML="Station added successfully";
-
 }
 
-/* FEEDBACK */
-
 function submitFeedback(){
-
 var rating=document.getElementById("rating").value;
 var review=document.getElementById("review").value;
 
@@ -613,7 +530,6 @@ body:JSON.stringify({rating,review})
 });
 
 document.getElementById("feedbackMessage").innerHTML="Thank you for your feedback!";
-
 }
 
 </script>

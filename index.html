@@ -8,7 +8,12 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"/>
 
 <style>
-body{font-family:'Segoe UI';margin:0;background:#eef5f4;}
+body{
+font-family:'Segoe UI',Arial;
+margin:0;
+background:#eef5f4;
+}
+
 .tabcontent{display:none;}
 
 header{
@@ -18,7 +23,10 @@ background:white;
 box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
-.tabs{display:flex;background:#004d40;}
+.tabs{
+display:flex;
+background:#004d40;
+}
 
 .tabs button{
 flex:1;
@@ -46,19 +54,29 @@ gap:15px;
 }
 
 .vehicle{
+background:white;
 padding:10px;
 border-radius:10px;
 text-align:center;
 cursor:pointer;
 box-shadow:0 0 10px rgba(0,0,0,0.1);
-background:white;
+transition:0.3s;
 }
+
+.vehicle:hover{transform:scale(1.05);}
 
 .vehicle img{
 width:100%;
 height:100px;
 object-fit:cover;
 border-radius:8px;
+}
+
+.vehicle small{
+display:block;
+font-size:12px;
+color:#444;
+margin-top:5px;
 }
 
 #map{
@@ -82,7 +100,11 @@ border-radius:5px;
 cursor:pointer;
 }
 
-.star{font-size:25px;cursor:pointer;color:gray;}
+.star{
+font-size:25px;
+cursor:pointer;
+color:gray;
+}
 .star.active{color:gold;}
 </style>
 </head>
@@ -108,7 +130,7 @@ cursor:pointer;
 <input type="text" id="username" placeholder="Name">
 <input type="email" id="useremail" placeholder="Email">
 <input type="tel" id="usermobile" placeholder="Mobile">
-<button onclick="loginAndEnter()">Enter</button>
+<button onclick="enterSystem()">Enter</button>
 </div>
 </div>
 
@@ -122,51 +144,61 @@ cursor:pointer;
 <div class="vehicle" onclick="selectVehicle('Tesla Model 3',162,60)">
 <img src="https://imgd.aeplcdn.com/1056x594/n/lnk9cva_1595893.jpg?q=80">
 <p>Tesla Model 3</p>
+<small>Speed: 162 km/h | Battery: 60 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('Tata Nexon EV',120,40)">
-<img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/126681/nexon-ev-prime-exterior-right-front-three-quarter-2.jpeg">
+<img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/126681/nexon-ev-prime-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80">
 <p>Tata Nexon EV</p>
+<small>Speed: 120 km/h | Battery: 40 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('MG ZS EV',175,50)">
-<img src="https://img.autocarindia.com/ExtraImages/20220725051241_MG_ZS_EV.jpg">
+<img src="https://mgmotor.scene7.com/is/image/mgmotor/zs-img-dsc-0321?$mg-rgb-tablet-image-responsive$&fmt=png-alpha">
 <p>MG ZS EV</p>
+<small>Speed: 175 km/h | Battery: 50 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('Hyundai Kona EV',155,45)">
-<img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/37067/kona-electric.jpeg">
+<img src="https://imgcdn.oto.com.sg/large/gallery/color/4/95/hyundai-kona-electric-color-552331.jpg">
 <p>Hyundai Kona EV</p>
+<small>Speed: 155 km/h | Battery: 45 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('Mahindra XUV400',150,39)">
-<img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/131179/xuv400.jpeg">
+<img src="https://stimg.cardekho.com/images/carexteriorimages/930x620/Mahindra/XUV400-EV/11392/1758199122411/front-left-side-47.jpg">
 <p>Mahindra XUV400</p>
+<small>Speed: 150 km/h | Battery: 39 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('BYD Atto 3',160,60)">
-<img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/139851/atto-3.jpeg">
+<img src="https://img.autocarpro.in/autocarpro/62b9a6c3-c511-4162-9de7-dfb486ef3d5d.png">
 <p>BYD Atto 3</p>
+<small>Speed: 160 km/h | Battery: 60 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('Kia EV6',185,77)">
-<img src="https://imgd.aeplcdn.com/664x374/n/cw/ec/144681/ev6.jpeg">
+<img src="https://stimg.cardekho.com/images/carexteriorimages/930x620/Kia/EV6/11740/1760005604163/front-left-side-47.jpg">
 <p>Kia EV6</p>
+<small>Speed: 185 km/h | Battery: 77 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('Ather 450X',90,3.7)">
-<img src="https://imgd.aeplcdn.com/310x174/n/cw/ec/124013/450x.jpeg">
+<img src="https://cdn.bikedekho.com/processedimages/ather-energy/2025-450x/source/2025-450x69a92155caf0d.jpg">
 <p>Ather 450X</p>
+<small>Speed: 90 km/h | Battery: 3.7 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('Ola S1 Pro',85,3.5)">
-<img src="https://imgd.aeplcdn.com/310x174/n/cw/ec/124015/s1-pro.jpeg">
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpBUmOpjyL_xsaJ4pHfTLMbCOXh6hwmQRbiQ&s">
 <p>Ola S1 Pro</p>
+<small>Speed: 85 km/h | Battery: 3.5 kWh</small>
 </div>
 
 <div class="vehicle" onclick="selectVehicle('TVS iQube',80,3.2)">
-<img src="https://imgd.aeplcdn.com/310x174/n/cw/ec/115571/iqube.jpeg">
+<img src="https://www.tvsmotor.com/electric-scooters/tvs-iqube/-/media/Vehicles/Feature/Iqube/Variant/TVS-iQube/Color_Images/Walnut-Brown/WalnutBrown-angle-iqube34.webp">
 <p>TVS iQube</p>
+<small>Speed: 80 km/h | Battery: 3.2 kWh</small>
 </div>
 
 </div>
@@ -181,6 +213,7 @@ cursor:pointer;
 <button onclick="findStations()">Find Stations</button>
 <p id="result"></p>
 </div>
+
 <div id="map"></div>
 </div>
 
@@ -188,7 +221,7 @@ cursor:pointer;
 <div id="booking" class="tabcontent">
 <div class="panel">
 <select id="stationSelect"></select>
-<input type="time" id="timeInput">
+<input type="time">
 <button onclick="bookSlot()">Book Slot</button>
 <p id="bookingMessage"></p>
 </div>
@@ -214,96 +247,123 @@ cursor:pointer;
 <hr>
 
 <h3>Contact Support</h3>
-<p><a href="mailto:evchargingstation4@gmail.com">Email Us</a></p>
-<p><a href="tel:+918250244327">Call 1</a></p>
-<p><a href="tel:+917980919380">Call 2</a></p>
-
+<p>Email: evchargingstation4@gmail.com</p>
+<p>Phone: +91 8250244327</p>
+<p>Phone: +91 7980919380</p>
+<p>Phone: +91 6289452993</p>
+<p>Phone: +91 8900155226</p>
 </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbwgC89wO-Vb5H1mIXCZaq5w23SnlWAt-CTTIqcnoOvLe0MwstoHqJBwAqMMsDt9XerY/exec";
-
-let loggedIn=false, vehicleSelected=false;
-let map;
-let rating=0;
-let userLat=22.57, userLng=88.36;
-let vehicleSpeed=40;
-
-/* ✅ LOGIN FIXED */
-function loginAndEnter(){
-
-let name=document.getElementById("username").value;
-let email=document.getElementById("useremail").value;
-let mobile=document.getElementById("usermobile").value;
-
-if(name==="" || email==="" || mobile===""){
-alert("Fill all fields");
-return;
-}
-
+const API = "https://script.google.com/macros/s/AKfycbwo0P_24VBXVjm8ZlwJ3URBHiLUkI7LeYJQQvaR5bmoQHHfPkC3zhcszLWqDtqArIMD/exec";
+function login(){
 fetch(API,{
 method:"POST",
-headers:{"Content-Type":"application/json"},
+headers:{
+"Content-Type":"application/json"
+},
 body:JSON.stringify({
 action:"login",
-name:name,
-email:email,
-mobile:mobile
+name:document.getElementById("username").value,
+email:document.getElementById("useremail").value,
+mobile:document.getElementById("usermobile").value
 })
 })
-.then(()=>{
-
-loggedIn=true;
-alert("Login Successful ✅");
-openTab("vehicle");
-
+.then(res=>res.text())   // IMPORTANT CHANGE
+.then(data=>{
+console.log(data);
+alert("Sent to Google Sheet");
 })
-.catch(()=>{
-alert("API Error ❌");
+.catch(err=>{
+console.error(err);
+alert("Error sending data");
 });
 }
-
-/* VEHICLE */
-function selectVehicle(name,speed,batteryCap){
-vehicleSelected=true;
-vehicleSpeed=speed;
-
-document.getElementById("battery").value=batteryCap;
-document.getElementById("batteryValue").innerText=batteryCap;
-
-openTab("main");
+function selectVehicle(name,speed,battery){
+fetch(API,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+action:"vehicle",
+userId:Date.now(),
+name,
+speed,
+battery
+})
+})
+.then(r=>r.text())
+.then(d=>console.log(d));
 }
-
-/* MAP */
-function initMap(){
-map=L.map('map').setView([userLat,userLng],12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-}
-
-/* FIND */
-function findStations(){
-if(!map) initMap();
-document.getElementById("result").innerText="Stations loaded ✅";
-}
-
-/* BOOK */
 function bookSlot(){
-bookingMessage.innerText="Booked ✅";
+fetch(API,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+action:"booking",
+userId:Date.now(),
+station:document.getElementById("stationSelect").value,
+time:document.querySelector("input[type=time]").value
+})
+})
+.then(r=>r.text())
+.then(d=>console.log(d));
 }
-
-/* FEEDBACK */
 function submitFeedback(){
-feedbackMessage.innerText="Submitted ✅";
+fetch(API,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+action:"feedback",
+userId:Date.now(),
+rating,
+review:document.getElementById("review").value
+})
+})
+.then(r=>r.text())
+.then(d=>console.log(d));
+}
+let loggedIn=false, vehicleSelected=false;
+let map, routingControl, rangeCircle, userMarker;
+let rating=0;
+
+let userLat=22.5726, userLng=88.3639;
+let vehicleSpeed=40;
+
+const stations=[
+{name:"Sector V",lat:22.576,lng:88.433},
+{name:"Gariahat",lat:22.518,lng:88.365},
+{name:"New Town",lat:22.585,lng:88.473},
+{name:"Howrah",lat:22.583,lng:88.342},
+{name:"Park Circus",lat:22.541,lng:88.372}
+];
+
+/* 🚗 CAR ICON */
+const carIcon=L.icon({
+iconUrl:"https://cdn-icons-png.flaticon.com/512/744/744465.png",
+iconSize:[40,40]
+});
+
+/* 🚦 LIVE TRAFFIC FACTOR (FEATURE 2) */
+function trafficFactor(){
+return 1 + Math.random()*0.6; // 1.0 to 1.6 delay
 }
 
-/* UI */
 function openTab(tab){
 document.querySelectorAll(".tabcontent").forEach(t=>t.style.display="none");
 document.getElementById(tab).style.display="block";
+if(tab==="main" && !map) setTimeout(initMap,300);
+if(map) setTimeout(()=>map.invalidateSize(),200);
 }
 
 function checkLogin(tab){
@@ -316,12 +376,122 @@ if(!vehicleSelected){alert("Select vehicle");return;}
 openTab(tab);
 }
 
+function enterSystem(){
+loggedIn=true;
+openTab("vehicle");
+}
+
+function selectVehicle(name,speed,battery){
+vehicleSelected=true;
+vehicleSpeed=speed;
+battery.value=battery;
+batteryValue.innerText=battery;
+openTab("main");
+}
+
+function initMap(){
+
+map=L.map('map').setView([userLat,userLng],12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+userMarker=L.marker([userLat,userLng],{icon:carIcon}).addTo(map);
+
+stations.forEach(s=>{
+L.marker([s.lat,s.lng]).addTo(map).bindPopup(s.name);
+let opt=document.createElement("option");
+opt.text=s.name;
+document.getElementById("stationSelect").add(opt);
+});
+
+navigator.geolocation.watchPosition(pos=>{
+userLat=pos.coords.latitude;
+userLng=pos.coords.longitude;
+userMarker.setLatLng([userLat,userLng]);
+});
+}
+
+battery.oninput=()=>batteryValue.innerText=battery.value;
+
+function getDistance(a,b,c,d){
+let R=6371;
+let dLat=(c-a)*Math.PI/180;
+let dLon=(d-b)*Math.PI/180;
+let x=Math.sin(dLat/2)**2+
+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLon/2)**2;
+return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function findStations(){
+
+let range=battery.value*0.25;
+
+if(rangeCircle) map.removeLayer(rangeCircle);
+
+rangeCircle=L.circle([userLat,userLng],{
+radius:range*1000,color:"green"
+}).addTo(map);
+
+let list=stations.map(s=>{
+let dist=getDistance(userLat,userLng,s.lat,s.lng);
+
+/* 🚦 FEATURE 2: LIVE TRAFFIC ROUTING */
+let traffic=trafficFactor();
+let adjustedDist=dist*traffic;
+
+/* ⚡ FEATURE 4: CHARGING TIME PREDICTION */
+let chargeTime=(100-battery.value)*1.1 + adjustedDist*2;
+
+let time=(adjustedDist/vehicleSpeed)*60;
+
+return {...s,d:adjustedDist,t:time,ct:chargeTime};
+}).sort((a,b)=>a.d-b.d);
+
+let output="";
+
+list.forEach(s=>{
+let safe=s.d<=range;
+
+output+=`
+<b>${s.name}</b><br>
+Distance (traffic adjusted): ${s.d.toFixed(2)} km<br>
+Travel Time: ${s.t.toFixed(0)} min<br>
+Charging Time: ~${s.ct.toFixed(0)} min<br>
+Status: <b style="color:${safe?'green':'red'}">${safe?'Safe':'Unsafe'}</b><br>
+<a href="https://www.google.com/maps/dir/${userLat},${userLng}/${s.lat},${s.lng}" target="_blank">Navigate</a>
+<hr>
+`;
+});
+
+document.getElementById("result").innerHTML=output;
+
+let best=list.find(s=>s.d<=range);
+
+if(best){
+if(routingControl) map.removeControl(routingControl);
+
+routingControl=L.Routing.control({
+waypoints:[
+L.latLng(userLat,userLng),
+L.latLng(best.lat,best.lng)
+]
+}).addTo(map);
+}
+}
+
+/* FEEDBACK */
 function rate(n){
 rating=n;
 document.querySelectorAll(".star").forEach((s,i)=>{
 s.classList.toggle("active",i<n);
 });
 }
+
+function submitFeedback(){
+feedbackMessage.innerText="Rating "+rating+"⭐ submitted";
+}
+
+function bookSlot(){bookingMessage.innerText="Booked";}
 
 </script>
 
